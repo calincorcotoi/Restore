@@ -1,0 +1,24 @@
+# fly.toml app configuration file generated for restore on 2023-10-07T09:36:21+07:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = "restore"
+primary_region = "sin"
+
+[build]
+  image = "calinutu/restore:latest"
+
+[env]
+  ASPNETCORE_URLS="http://+:8080"
+  StripeSettings__PublishableKey="pk_test_51QTi6OCakhMNhn1GBJ7PfqFA6dJ8xjo6F6nOpAel5TCvnwNbRN6l6HrM5CYZGNtHGONi971eBWU8yLx4V9CiuZK400mYfJFZZB"
+  Cloudinary__CloudName="dhhukt8kk"
+  Cloudinary__ApiKey="482818453821362"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
