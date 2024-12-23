@@ -8,7 +8,7 @@ Restore is a project aimed at providing a reliable and efficient way to backup a
 - **Data Encryption**: Secure your backups with advanced encryption techniques.
 - **Incremental Backups**: Save time and storage by only backing up changes since the last backup.
 - **User-friendly Interface**: Easy-to-use interface for managing your backups and restores.
-- **Cross-Platform Support**: Works on Windows, macOS, and Linux.
+- **Cross-Platform Support**: Works on Windows, macOS, and Linux.ss
 
 ## Installation
 To install Restore, follow these steps:
