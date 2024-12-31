@@ -72,7 +72,8 @@ const requests = {
 const Catalog = {
     list: (params: URLSearchParams) => requests.get('products', params),
     details: (id: number) => requests.get(`products/${id}`),
-    fetchFilters: () => requests.get('products/filters')
+    fetchFilters: () => requests.get('products/filters'),
+    getCommentsForProduct:(productId: number) => requests.get(`comments/${productId}`)
 }
 
 const TestErrors = {

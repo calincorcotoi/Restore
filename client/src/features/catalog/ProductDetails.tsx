@@ -7,13 +7,14 @@ import { LoadingButton } from '@mui/lab';
 import { useAppDispatch, useAppSelector } from '../../app/store/configureStore';
 import { addBasketItemAsync, removeBasketItemAsync } from '../basket/basketSlice';
 import { fetchProductAsync, productSelectors } from './catalogSlice';
+import ProductComments from './ProductComments';
 
 export default function ProductDetails() {
     const { id } = useParams<{ id: string }>();
     const dispatch = useAppDispatch();
     const { basket, status } = useAppSelector(state => state.basket);
     const product = useAppSelector(state => productSelectors.selectById(state, id!));
-    const {status: productStatus} = useAppSelector(state => state.catalog);
+    const {status: productStatus} = useAppSelector(state => state.catalog.products);
     const [quantity, setQuantity] = useState(0);
     const item = basket?.items.find(i => i.productId === product?.id);
 
@@ -104,6 +105,7 @@ export default function ProductDetails() {
                     </Grid>
                 </Grid>
             </Grid>
+            <ProductComments productId={id}/>
         </Grid>
     )
 }

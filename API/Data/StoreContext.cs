@@ -1,6 +1,5 @@
 using API.Entities;
 using API.Entities.OrderAggregate;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +14,7 @@ public class StoreContext : IdentityDbContext<User, Role, int>
     public DbSet<Product> Products { get; set; }
     public DbSet<Basket> Baskets { get; set; }
     public DbSet<Order> Orders { get; set; }
+    public DbSet<Comment> Comments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -26,10 +26,16 @@ public class StoreContext : IdentityDbContext<User, Role, int>
             .HasForeignKey<UserAddress>(a => a.Id)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Entity<Product>()
+            .HasMany(p => p.Comments)
+            .WithOne()
+            .HasForeignKey(c => c.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.Entity<Role>()
             .HasData(
-                new Role {Id = 1, Name = "Member", NormalizedName = "MEMBER" },
-                new Role {Id = 2, Name = "Admin", NormalizedName = "ADMIN" }
+                new Role { Id = 1, Name = "Member", NormalizedName = "MEMBER" },
+                new Role { Id = 2, Name = "Admin", NormalizedName = "ADMIN" }
             );
     }
 }

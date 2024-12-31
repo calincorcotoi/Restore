@@ -11,4 +11,5 @@ public class Product
     public string Brand { get; set; }
     public int QuantityInStock { get; set; }
     public string PublicId { get; set; }
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 }

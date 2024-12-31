@@ -17,7 +17,7 @@ const sortOptions = [
 
 export default function Catalog() {
     const {products, filtersLoaded, brands, types, metaData} = useProducts();
-    const { productParams } = useAppSelector(state => state.catalog);
+    const { productParams } = useAppSelector(state => state.catalog.products);
     const dispatch = useAppDispatch();
 
     if (!filtersLoaded) return <LoadingComponent message='Loading products...' />

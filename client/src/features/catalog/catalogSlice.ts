@@ -3,7 +3,7 @@ import agent from "../../app/api/agent";
 import { Product, ProductParams } from "../../app/models/product";
 import { RootState } from '../../app/store/configureStore';
 import { MetaData } from '../../app/models/pagination';
-
+import { Comment } from "../../app/models/comment";
 interface CatalogState {
     productsLoaded: boolean;
     filtersLoaded: boolean;
@@ -14,7 +14,13 @@ interface CatalogState {
     metaData: MetaData | null;
 }
 
+/**
+ * An adapter for managing the normalized state of `Product` entities.
+ * This adapter provides a set of functions for performing CRUD operations
+ * on the `Product` entities within the Redux state.
+ */
 const productsAdapter = createEntityAdapter<Product>();
+const commentsAdapter = createEntityAdapter<Comment>();
 
 function getAxiosParams(productParams: ProductParams) {
     const params = new URLSearchParams();
@@ -27,10 +33,22 @@ function getAxiosParams(productParams: ProductParams) {
     return params;
 }
 
+export const fetchCommentsAsync = createAsyncThunk<Comment[], number>(
+    'catalog/fetchCommentsAsync',
+    async (productId, thunkAPI) => {
+        try {
+            const comments = await agent.Catalog.getCommentsForProduct(productId);
+            return comments;
+        } catch (error: any) {
+            return thunkAPI.rejectWithValue({ error: error.data })
+        }
+    }   
+)
+
 export const fetchProductsAsync = createAsyncThunk<Product[], void, {state: RootState}>(
     'catalog/fetchProductsAsync',
     async (_, thunkAPI) => {
-        const params = getAxiosParams(thunkAPI.getState().catalog.productParams);
+        const params = getAxiosParams(thunkAPI.getState().catalog.products.productParams);
         try {
             const response = await agent.Catalog.list(params);
             thunkAPI.dispatch(setMetaData(response.metaData));
@@ -74,9 +92,8 @@ function initParams(): ProductParams {
     }
 }
 
-export const catalogSlice = createSlice({
-    name: 'catalog',
-    initialState: productsAdapter.getInitialState<CatalogState>({
+const initialState = {
+    products: productsAdapter.getInitialState<CatalogState>({
         productsLoaded: false,
         filtersLoaded: false,
         status: 'idle',
@@ -85,69 +102,91 @@ export const catalogSlice = createSlice({
         productParams: initParams(),
         metaData: null
     }),
+    comments: commentsAdapter.getInitialState({
+        status: 'idle'
+    })
+  };
+
+export const catalogSlice = createSlice({
+    name: 'catalog',
+    initialState,
     reducers: {
         setProductParams: (state, action) => {
-            state.productsLoaded = false;
-            state.productParams = {...state.productParams, ...action.payload, pageNumber: 1}
+            state.products.productsLoaded = false;
+            state.products.productParams = {...state.products.productParams, ...action.payload, pageNumber: 1}
         },
         setPageNumber: (state, action) => {
-            state.productsLoaded = false;
-            state.productParams = {...state.productParams, ...action.payload}
+            state.products.productsLoaded = false;
+            state.products.productParams = {...state.products.productParams, ...action.payload}
         },
         setMetaData: (state, action) => {
-            state.metaData = action.payload
+            state.products.metaData = action.payload
         },
         resetProductParams: (state) => {
-            state.productParams = initParams()
+            state.products.productParams = initParams()
         },
         setProduct: (state, action) => {
-            productsAdapter.upsertOne(state, action.payload);
-            state.productsLoaded = false;
+            productsAdapter.upsertOne(state.products, action.payload);
+            state.products.productsLoaded = false;
         },
         removeProduct: (state, action) => {
-            productsAdapter.removeOne(state, action.payload);
-            state.productsLoaded = false;
+            productsAdapter.removeOne(state.products, action.payload);
+            state.products.productsLoaded = false;
         }
     },
     extraReducers: (builder => {
         builder.addCase(fetchProductsAsync.pending, (state) => {
-            state.status = 'pendingFetchProducts'
+            state.products.status = 'pendingFetchProducts'
         });
         builder.addCase(fetchProductsAsync.fulfilled, (state, action) => {
-            productsAdapter.setAll(state, action.payload);
-            state.status = 'idle',
-                state.productsLoaded = true;
+            productsAdapter.setAll(state.products, action.payload);
+            state.products.status = 'idle',
+                state.products.productsLoaded = true;
         });
         builder.addCase(fetchProductsAsync.rejected, (state, action) => {
             console.log(action.payload);
-            state.status = 'idle';
+            state.products.status = 'idle';
         });
+        //fetchCommentsAsync
+        builder.addCase(fetchCommentsAsync.pending, (state) => {
+            state.comments.status = 'pendingFetchProduct'
+        });
+        builder.addCase(fetchCommentsAsync.fulfilled, (state, action) => {
+            commentsAdapter.addMany(state.comments , action.payload);
+            state.comments.status = 'idle'
+        });
+        builder.addCase(fetchCommentsAsync.rejected, (state, action) => {
+            console.log(action);
+            state.comments.status = 'idle'
+        });
+        //fetchProductAsync
         builder.addCase(fetchProductAsync.pending, (state) => {
-            state.status = 'pendingFetchProduct'
+            state.products.status = 'pendingFetchProduct'
         });
         builder.addCase(fetchProductAsync.fulfilled, (state, action) => {
-            productsAdapter.upsertOne(state, action.payload);
-            state.status = 'idle'
+            productsAdapter.upsertOne(state.products, action.payload);
+            state.products.status = 'idle'
         });
         builder.addCase(fetchProductAsync.rejected, (state, action) => {
             console.log(action);
-            state.status = 'idle'
+            state.products.status = 'idle'
         });
         builder.addCase(fetchFilters.pending, (state) => {
-            state.status = 'pendingFetchFilters';
+            state.products.status = 'pendingFetchFilters';
         });
         builder.addCase(fetchFilters.fulfilled, (state, action) => {
-            state.brands = action.payload.brands;
-            state.types = action.payload.types;
-            state.status = 'idle';
-            state.filtersLoaded = true;
+            state.products.brands = action.payload.brands;
+            state.products.types = action.payload.types;
+            state.products.status = 'idle';
+            state.products.filtersLoaded = true;
         });
         builder.addCase(fetchFilters.rejected, (state) => {
-            state.status = 'idle';
+            state.products.status = 'idle';
         });
     })
 })
 
 export const {setProductParams, resetProductParams, setMetaData, setPageNumber, setProduct, removeProduct} = catalogSlice.actions;
 
-export const productSelectors = productsAdapter.getSelectors((state: RootState) => state.catalog);
+export const productSelectors = productsAdapter.getSelectors((state: RootState) => state.catalog.products);
+export const commentsSelectors = commentsAdapter.getSelectors((state: RootState) => state.catalog.comments);

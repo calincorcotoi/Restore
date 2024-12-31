@@ -4,7 +4,7 @@ import { setProductParams } from './catalogSlice';
 import { useState } from 'react';
 
 export default function ProductSearch() {
-    const { productParams } = useAppSelector(state => state.catalog);
+    const { productParams } = useAppSelector(state => state.catalog.products);
     const [searchTerm, setSearchTerm] = useState(productParams.searchTerm);
     const dispatch = useAppDispatch();
 
