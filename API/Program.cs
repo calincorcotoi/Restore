@@ -46,27 +46,27 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 string connString;
-//connString = builder.Configuration.GetConnectionString("DefaultConnection");
+// connString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (builder.Environment.IsDevelopment())
-    connString = builder.Configuration.GetConnectionString("DefaultConnection");
+   connString = builder.Configuration.GetConnectionString("DefaultConnection");
 else
 {
-    // Use connection string provided at runtime by FlyIO.
-    string connUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
+   // Use connection string provided at runtime by FlyIO.
+   string connUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 
-    // Parse connection URL to connection string for Npgsql
-    connUrl = connUrl.Replace("postgres://", string.Empty);
-    string pgUserPass = connUrl.Split("@")[0];
-    string pgHostPortDb = connUrl.Split("@")[1];
-    string pgHostPort = pgHostPortDb.Split("/")[0];
-    string pgDb = pgHostPortDb.Split("/")[1];
-    string pgUser = pgUserPass.Split(":")[0];
-    string pgPass = pgUserPass.Split(":")[1];
-    string pgHost = pgHostPort.Split(":")[0];
-    string pgPort = pgHostPort.Split(":")[1];
-    string updatedHost = pgHost.Replace("flycast", "internal");
+   // Parse connection URL to connection string for Npgsql
+   connUrl = connUrl.Replace("postgres://", string.Empty);
+   string pgUserPass = connUrl.Split("@")[0];
+   string pgHostPortDb = connUrl.Split("@")[1];
+   string pgHostPort = pgHostPortDb.Split("/")[0];
+   string pgDb = pgHostPortDb.Split("/")[1];
+   string pgUser = pgUserPass.Split(":")[0];
+   string pgPass = pgUserPass.Split(":")[1];
+   string pgHost = pgHostPort.Split(":")[0];
+   string pgPort = pgHostPort.Split(":")[1];
+   string updatedHost = pgHost.Replace("flycast", "internal");
 
-    connString = $"Server={updatedHost};Port={pgPort};User Id={pgUser};Password={pgPass};Database={pgDb};";
+   connString = $"Server={updatedHost};Port={pgPort};User Id={pgUser};Password={pgPass};Database={pgDb};";
 }
 
 builder.Services.AddDbContext<StoreContext>(opt =>

@@ -47,7 +47,7 @@ export default function Header({ handleThemeChange, darkMode }: Props) {
                         to='/'
                         sx={navLinkStyles}
                     >
-                        RE-STORE
+                        RE-STOREsss
                     </Typography>
                     <Switch checked={darkMode} onChange={handleThemeChange} />
                 </Box>
