@@ -45,6 +45,18 @@ export const fetchCommentsAsync = createAsyncThunk<Comment[], number>(
     }   
 )
 
+export const addCommentAsync = createAsyncThunk<Comment, {productId: number, text: string }>(
+    'catalog/addCommentAsync',
+    async ({productId,text}, thunkAPI) => {
+        try {
+            const comment = await agent.Catalog.addCommentForProduct(productId, text);
+            return comment;
+        } catch (error: any) {
+            return thunkAPI.rejectWithValue({ error: error.data })
+        }
+    }   
+)
+
 export const fetchProductsAsync = createAsyncThunk<Product[], void, {state: RootState}>(
     'catalog/fetchProductsAsync',
     async (_, thunkAPI) => {
@@ -147,9 +159,21 @@ export const catalogSlice = createSlice({
             console.log(action.payload);
             state.products.status = 'idle';
         });
+        //addCommentAsync
+        builder.addCase(addCommentAsync.pending, (state) => {
+            state.comments.status = 'pendingaddComment'
+        });
+        builder.addCase(addCommentAsync.fulfilled, (state, action) => {
+            commentsAdapter.addOne(state.comments , action.payload);
+            state.comments.status = 'idle'
+        });
+        builder.addCase(addCommentAsync.rejected, (state, action) => {
+            console.log(action);
+            state.comments.status = 'idle'
+        });
         //fetchCommentsAsync
         builder.addCase(fetchCommentsAsync.pending, (state) => {
-            state.comments.status = 'pendingFetchProduct'
+            state.comments.status = 'pendingFetchCommentsProduct'
         });
         builder.addCase(fetchCommentsAsync.fulfilled, (state, action) => {
             commentsAdapter.addMany(state.comments , action.payload);

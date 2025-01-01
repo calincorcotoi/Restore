@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LoadingButton } from "@mui/lab";
 import { Grid, Typography, Divider, TextField } from "@mui/material";
-import { commentsSelectors, fetchCommentsAsync } from "./catalogSlice";
+import { addCommentAsync, commentsSelectors, fetchCommentsAsync } from "./catalogSlice";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 
 interface ProductCommentsProps {
@@ -12,29 +12,24 @@ export default function ProductComments({ productId }: ProductCommentsProps) {
     
     const dispatch = useAppDispatch();
     const { user } = useAppSelector(state => state.account);
+    const {status}  = useAppSelector(state => state.catalog.comments);
 
     useEffect(() => {
-       if(productId) dispatch(fetchCommentsAsync(parseInt(productId)))
-    });
+        if(productId) dispatch(fetchCommentsAsync(parseInt(productId)))
+    },[dispatch, productId]);
 
     const comments = useAppSelector(state => commentsSelectors.selectEntities(state));
-    // const [comments, setComments] = useState(Object.values(commentsFromStore).map(comment => ({
-    //     ...comment,
-    //     isEditing: false
-    // })));
 
-    // const handleEditClick = (id: number) => {
-    //     setComments(comments.map(comment => 
-    //         comment.id === id ? { ...comment, isEditing: !comment.isEditing } : comment
-    //     ));
-    // };
+    const [commentText, setCommentText] = useState("");
 
-    // const handleTextChange = (id: number, text: string) => {
-    //     setComments(comments.map(comment => 
-    //         comment.id === id ? { ...comment, text } : comment
-    //     ));
-    // };
-
+    function handleSubmitComment() {
+        // Add comment
+        if (productId && commentText.trim()) {
+            dispatch(addCommentAsync({ productId: parseInt(productId), text: commentText }));
+            setCommentText("");
+        }
+    }
+    
     return (
         <Grid item xs={12}>
             <Typography variant='h5' gutterBottom>
@@ -45,11 +40,13 @@ export default function ProductComments({ productId }: ProductCommentsProps) {
             <Grid container spacing={2}>
                 <Grid item xs={12}>
                     <TextField
+                        value={commentText}
                         label="Add a comment"
                         multiline
                         rows={4}
                         variant="outlined"
                         fullWidth
+                        onChange={(e) => setCommentText(e.target.value)}
                     />
                 </Grid>
                 <Grid item xs={12}>
@@ -57,7 +54,9 @@ export default function ProductComments({ productId }: ProductCommentsProps) {
                         color="primary"
                         variant="contained"
                         size="large"
-                        fullWidth
+                        fullWidth    
+                        onClick={handleSubmitComment}        
+                        loading={status.includes('pendingaddComment')}            
                     >
                         Submit
                     </LoadingButton>
@@ -80,4 +79,5 @@ export default function ProductComments({ productId }: ProductCommentsProps) {
         </Grid>
     );
 }
+
 
